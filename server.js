@@ -9,30 +9,34 @@ const http = require("http");
 const requestListener = (request, response) => {
   response.setHeader("Content-Type", "text/html");
   response.statusCode = 200;
-  const { method } = request;
+  const { method, url } = request;
 
-  if (method === "GET") {
-    // Response ketika GET
-    response.end("<h1>Hello!</h1>");
-  }
-
-  if (method === "POST") {
-      // Response ketika POST
-      // * Pertama, kita deklarasikan variabel body dan inisialisasikan nilainya dengan array kosong. Ini berfungsi untuk menampung buffer pada stream. 
+  if (url === '/') {
+    if (method === "GET") {
+      response.end("<h1>Ini adalah homepage</h1>")
+    } else {
+      response.end(`<h1>Halaman tidak dapat diakses dengan ${method} request!</h1>`);
+    }
+  } else if (url === '/about') {
+    if (method === "GET") {
+      response.end("<h1>Ini adalah halaman about</h1>")
+    } else if (method === "POST") {
       let body = [];
 
-      // * Lalu, ketika event data terjadi pada request, kita isi array body dengan chunk (potongan data) yang dibawa callback function pada event tersebut.
-      request.on('data', chunk =>{
+      request.on('data', (chunk) => {
         body.push(chunk);
       });
 
-      // * Terakhir, ketika proses stream berakhir, maka event end akan terbangkitkan. 
-      // * Di sinilah kita mengubah variabel body yang sebelumnya menampung buffer menjadi data sebenarnya dalam bentuk string melalui perintah Buffer.concat(body).toString().
-      request.on('end', ()=>{
+      request.on('end', () => {
         body = Buffer.concat(body).toString();
-        const {name} = JSON.parse(body);
-        response.end(`<h1>Hai ${name}!</h1>`);
+        const { name } = JSON.parse(body);
+        response.end(`<h1>Halo, ${name}! Ini adalah halaman about</h1>`);
       });
+    } else {
+      response.end(`<h1>Halaman tidak dapat diakses dengan ${method} request!</h1>`);
+    }
+  } else {
+    response.end("<h1>Halaman tidak ditemukan!</h1>");
   }
 };
 
