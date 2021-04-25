@@ -18,20 +18,22 @@ const requestListener = (request, response) => {
 
   if (method === "POST") {
       // Response ketika POST
-    response.end("<h1>Hai!</h2>");
-  }
+      // * Pertama, kita deklarasikan variabel body dan inisialisasikan nilainya dengan array kosong. Ini berfungsi untuk menampung buffer pada stream. 
+      let body = [];
 
-  if (method === "PUT") {
-      // Response ketika PUT
-    response.end("<h1>Bonjour!</h1>");
-  }
+      // * Lalu, ketika event data terjadi pada request, kita isi array body dengan chunk (potongan data) yang dibawa callback function pada event tersebut.
+      request.on('data', chunk =>{
+        body.push(chunk);
+      });
 
-  if (method === "DELETE") {
-      // Response ketika DELETE
-    response.end("<h1>Salam!</h1>");
+      // * Terakhir, ketika proses stream berakhir, maka event end akan terbangkitkan. 
+      // * Di sinilah kita mengubah variabel body yang sebelumnya menampung buffer menjadi data sebenarnya dalam bentuk string melalui perintah Buffer.concat(body).toString().
+      request.on('end', ()=>{
+        body = Buffer.concat(body).toString();
+        const {name} = JSON.parse(body);
+        response.end(`<h1>Hai ${name}!</h1>`);
+      });
   }
-
-  //  Anda bisa mengevaluasi tipe method lainnya
 };
 
 const server = http.createServer(requestListener);
